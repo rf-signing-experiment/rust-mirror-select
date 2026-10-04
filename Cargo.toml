@@ -1,0 +1,20 @@
+[package]
+name = "rust-mirror-select"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+base64 = "0.23.1"
+bitflags = "2.13.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.151"
+simple-dns = "0.12.0"
+thiserror = "2"
+tokio = { version = "1.26.0", features = ["rt-multi-thread", "macros", "net", "time"] }
+url = { version = "2.4", features = ["serde"] }
+
+[target."cfg(unix)".dependencies]
+resolv-conf = "0.7"
+
+[target."cfg(windows)".dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_NetworkManagement_IpHelper", "Win32_NetworkManagement_Ndis", "Win32_Networking_WinSock"] }
