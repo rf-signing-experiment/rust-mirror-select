@@ -1,58 +1,72 @@
-pub mod client;
+pub mod consts;
+#[cfg(feature = "dns")]
+pub mod dns;
 pub mod encoding;
-pub mod resolver;
+#[cfg(feature = "ping-select")]
+pub mod ping_select;
 pub mod set;
-
-use std::net::{Ipv6Addr, SocketAddr};
-use std::time::Duration;
+#[cfg(feature = "speedtest-select")]
+pub mod speedtest_select;
+#[cfg(feature = "toml")]
+pub mod toml;
 
 use serde::{Deserialize, Serialize};
-use simple_dns::{RCODE, SimpleDnsError};
 use url::Url;
 
-pub use client::MirrorSelectClient;
+#[cfg(feature = "dns")]
+pub use dns::{MirrorSelectClient, SelectResolver};
 pub use encoding::MirrorEntry;
-pub use resolver::SelectResolver;
-pub use set::MirrorSet;
-
-pub const DEFAULT_DNS_NAME: &str = "mirrors.rustup.rs";
-pub const DNS_PORT: u16 = 53;
-pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);
-pub const MAX_RESPONSE_LEN: usize = 4096;
-pub const SITE_LOCAL_RESOLVERS: [Ipv6Addr; 3] = [
-    Ipv6Addr::new(0xfec0, 0, 0, 0xffff, 0, 0, 0, 1),
-    Ipv6Addr::new(0xfec0, 0, 0, 0xffff, 0, 0, 0, 2),
-    Ipv6Addr::new(0xfec0, 0, 0, 0xffff, 0, 0, 0, 3),
-];
-#[cfg(windows)]
-pub(crate) const ADAPTERS_BUFFER_BYTES: u32 = 15 * 1024;
-#[cfg(windows)]
-pub(crate) const ADAPTERS_MAX_ATTEMPTS: usize = 3;
+#[cfg(feature = "ping-select")]
+pub use ping_select::PingSelect;
+pub use set::{MirrorSet, SelectStrategy};
+#[cfg(feature = "speedtest-select")]
+pub use speedtest_select::SpeedtestSelect;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("malformed DNS message")]
-    Dns(#[from] SimpleDnsError),
-    #[error("DNS transport failed")]
-    Io(#[from] std::io::Error),
-    #[error("no DNS servers are configured on this system")]
-    NoNameservers,
-    #[cfg(unix)]
-    #[error("could not parse resolv.conf")]
-    ResolvConf(#[from] resolv_conf::ParseError),
-    #[error("no DNS response from {server} within {timeout:?}")]
-    Timeout {
-        server: SocketAddr,
-        timeout: Duration,
-    },
-    #[error("DNS query for {name} answered with {rcode:?}")]
-    Rcode { name: String, rcode: RCODE },
-    #[error("TXT record is not valid UTF-8 text")]
-    Text(#[from] std::string::FromUtf8Error),
     #[error("mirror entry is not valid base64")]
     Base64(#[from] base64::DecodeError),
     #[error("mirror entry does not describe a mirror")]
     Mirror(#[from] serde_json::Error),
+    #[cfg(any(feature = "ping-select", feature = "speedtest-select"))]
+    #[error("no mirror responded")]
+    NoReachableMirror,
+    #[cfg(feature = "speedtest-select")]
+    #[error("HTTP client could not be built")]
+    Http(#[from] reqwest::Error),
+    #[cfg(feature = "toml")]
+    #[error("mirror TOML could not be parsed")]
+    TomlParse(#[from] ::toml::de::Error),
+    #[cfg(feature = "toml")]
+    #[error("mirror set could not be written as TOML")]
+    TomlWrite(#[from] ::toml::ser::Error),
+    #[cfg(feature = "dns")]
+    #[error("malformed DNS message")]
+    Dns(#[from] simple_dns::SimpleDnsError),
+    #[cfg(feature = "dns")]
+    #[error("DNS transport failed")]
+    Io(#[from] std::io::Error),
+    #[cfg(feature = "dns")]
+    #[error("no DNS servers are configured on this system")]
+    NoNameservers,
+    #[cfg(all(feature = "dns", unix))]
+    #[error("could not parse resolv.conf")]
+    ResolvConf(#[from] resolv_conf::ParseError),
+    #[cfg(feature = "dns")]
+    #[error("no DNS response from {server} within {timeout:?}")]
+    Timeout {
+        server: std::net::SocketAddr,
+        timeout: std::time::Duration,
+    },
+    #[cfg(feature = "dns")]
+    #[error("DNS query for {name} answered with {rcode:?}")]
+    Rcode {
+        name: String,
+        rcode: simple_dns::RCODE,
+    },
+    #[cfg(feature = "dns")]
+    #[error("TXT record is not valid UTF-8 text")]
+    Text(#[from] std::string::FromUtf8Error),
 }
 
 bitflags::bitflags! {

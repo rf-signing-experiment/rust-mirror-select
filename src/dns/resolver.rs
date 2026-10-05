@@ -1,7 +1,9 @@
 use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 
-use crate::{DEFAULT_TIMEOUT, Error, MirrorSelectClient, SITE_LOCAL_RESOLVERS};
+use crate::Error;
+use crate::consts::{DEFAULT_TIMEOUT, SITE_LOCAL_RESOLVERS};
+use crate::dns::MirrorSelectClient;
 
 #[cfg(unix)]
 pub use sys::parse_resolv_conf;
@@ -75,7 +77,8 @@ mod sys {
 
     use resolv_conf::{Config, ScopedIp};
 
-    use crate::{DNS_PORT, Error};
+    use crate::Error;
+    use crate::consts::DNS_PORT;
 
     pub fn nameservers() -> Result<Vec<SocketAddr>, Error> {
         let contents = candidate_paths()
@@ -138,7 +141,8 @@ mod sys {
         AF_INET, AF_INET6, AF_UNSPEC, SOCKADDR_IN, SOCKADDR_IN6, SOCKET_ADDRESS,
     };
 
-    use crate::{ADAPTERS_BUFFER_BYTES, ADAPTERS_MAX_ATTEMPTS, DNS_PORT, Error};
+    use crate::Error;
+    use crate::consts::{ADAPTERS_BUFFER_BYTES, ADAPTERS_MAX_ATTEMPTS, DNS_PORT};
 
     pub fn nameservers() -> Result<Vec<SocketAddr>, Error> {
         let flags = GAA_FLAG_SKIP_UNICAST

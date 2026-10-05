@@ -6,7 +6,8 @@ use simple_dns::rdata::RData;
 use simple_dns::{CLASS, Name, Packet, PacketFlag, QCLASS, QTYPE, Question, RCODE, TYPE};
 use tokio::net::UdpSocket;
 
-use crate::{DEFAULT_TIMEOUT, Error, MAX_RESPONSE_LEN};
+use crate::Error;
+use crate::consts::{DEFAULT_TIMEOUT, MAX_RESPONSE_LEN};
 
 #[derive(Debug)]
 pub struct MirrorSelectClient {

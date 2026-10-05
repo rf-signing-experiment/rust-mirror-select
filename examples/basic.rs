@@ -1,6 +1,7 @@
 use std::env;
 
-use rust_mirror_select::{DEFAULT_DNS_NAME, Error, MirrorSet};
+use rust_mirror_select::consts::DEFAULT_DNS_NAME;
+use rust_mirror_select::{Error, MirrorSet};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {

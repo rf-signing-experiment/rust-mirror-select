@@ -1,26 +1,22 @@
+use std::future::Future;
+
 use serde::{Deserialize, Serialize};
 
-use crate::{Error, Mirror, MirrorEntry, MirrorSelectClient, SelectResolver};
+use crate::{Error, Mirror, MirrorEntry};
+
+pub trait SelectStrategy {
+    fn get_best<'a>(
+        &mut self,
+        mirrors: &'a MirrorSet,
+    ) -> impl Future<Output = Result<&'a Mirror, Error>> + Send;
+}
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(transparent)]
 pub struct MirrorSet {
     mirrors: Vec<Mirror>,
 }
 
 impl MirrorSet {
-    pub async fn from_dns(name: &str) -> Result<Self, Error> {
-        Self::with_resolver(&SelectResolver::system()?, name).await
-    }
-
-    pub async fn with_resolver(resolver: &SelectResolver, name: &str) -> Result<Self, Error> {
-        Self::from_entries(resolver.lookup_txt(name).await?)
-    }
-
-    pub async fn with_dns_record(client: &MirrorSelectClient, name: &str) -> Result<Self, Error> {
-        Self::from_entries(client.lookup_txt(name).await?)
-    }
-
     pub fn from_entries<I, T>(entries: I) -> Result<Self, Error>
     where
         I: IntoIterator<Item = T>,

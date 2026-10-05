@@ -1,11 +1,10 @@
-mod common;
-
 use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 use std::time::Duration;
 
-use common::{MockDnsServer, mirrors};
-use rust_mirror_select::resolver::is_usable_nameserver;
-use rust_mirror_select::{DNS_PORT, Error, MirrorSet, SelectResolver};
+use crate::common::{MockDnsServer, mirrors};
+use rust_mirror_select::consts::DNS_PORT;
+use rust_mirror_select::dns::resolver::is_usable_nameserver;
+use rust_mirror_select::{Error, MirrorSet, SelectResolver};
 use simple_dns::RCODE;
 
 #[tokio::test]
@@ -93,7 +92,7 @@ fn new_dedups_preserving_order() {
 mod resolv_conf {
     use std::net::SocketAddr;
 
-    use rust_mirror_select::resolver::parse_resolv_conf;
+    use rust_mirror_select::dns::resolver::parse_resolv_conf;
 
     #[test]
     fn parses_nameservers_in_order() {

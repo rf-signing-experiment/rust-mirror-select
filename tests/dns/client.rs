@@ -1,8 +1,6 @@
-mod common;
-
 use std::time::Duration;
 
-use common::{MAX_CHARACTER_STRING, MockDnsServer, mirrors};
+use crate::common::{MAX_CHARACTER_STRING, MockDnsServer, mirrors};
 use rust_mirror_select::{Error, MirrorSelectClient, MirrorSet};
 use simple_dns::RCODE;
 
